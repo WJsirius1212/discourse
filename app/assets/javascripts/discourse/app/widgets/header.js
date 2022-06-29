@@ -84,10 +84,7 @@ createWidget("header-notifications", {
         const unread = user.all_unread_notifications || 0;
         const reviewables = user.unseen_reviewable_count || 0;
         const count = unread + reviewables;
-        if (
-          user.unread_high_priority_notifications &&
-          this._shouldHighlightAvatar()
-        ) {
+        if (count > 0 && this._shouldHighlightAvatar()) {
           this._addAvatarHighlight(contents);
         }
         if (count) {
@@ -144,7 +141,6 @@ createWidget("header-notifications", {
   },
 
   _shouldHighlightAvatar() {
-    // highlight the avatar if the first ever PM is not read
     const attrs = this.attrs;
     const { user } = attrs;
     return (
@@ -296,8 +292,7 @@ createWidget("header-icons", {
       contents() {
         let { currentUser } = this;
         if (
-          currentUser &&
-          currentUser.reviewable_count &&
+          currentUser?.reviewable_count &&
           !this.siteSettings.enable_revamped_user_menu
         ) {
           return h(

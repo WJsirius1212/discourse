@@ -82,7 +82,9 @@ export default class UserMenu extends GlimmerComponent {
         id: "review-queue",
         icon: "flag",
         panelComponent: "user-menu/reviewables-list",
-        count: this.currentUser.reviewable_count,
+        // we're retrieving the value with get() so that Ember tracks the property
+        // and re-renders the UI when it changes
+        count: this.currentUser.get("reviewable_count"),
       });
     }
 

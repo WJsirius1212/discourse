@@ -71,22 +71,109 @@ discourseModule("Integration | Component | site-header", function (hooks) {
 
       async test(assert) {
         let unreadBadge = query(
-          ".header-dropdown-toggle .unread-notifications"
+          ".header-dropdown-toggle.current-user .unread-notifications"
         );
         assert.strictEqual(unreadBadge.textContent, "1");
 
         this.currentUser.set("all_unread_notifications", 5);
         await settled();
 
-        unreadBadge = query(".header-dropdown-toggle .unread-notifications");
+        unreadBadge = query(
+          ".header-dropdown-toggle.current-user .unread-notifications"
+        );
         assert.strictEqual(unreadBadge.textContent, "5");
 
         this.currentUser.set("unseen_reviewable_count", 3);
         await settled();
 
-        unreadBadge = query(".header-dropdown-toggle .unread-notifications");
+        unreadBadge = query(
+          ".header-dropdown-toggle.current-user .unread-notifications"
+        );
         assert.strictEqual(unreadBadge.textContent, "8");
       },
     }
   );
+
+  componentTest(
+    "user avatar is highlighted when the user receives the first notification",
+    {
+      template: hbs`{{site-header}}`,
+
+      beforeEach() {
+        this.siteSettings.enable_revamped_user_menu = true;
+        this.currentUser.set("all_unread_notifications", 1);
+        this.currentUser.set("read_first_notification", false);
+        this.currentUser.set("enforcedSecondFactor", false);
+      },
+
+      test(assert) {
+        assert.ok(exists(".ring-first-notification"));
+      },
+    }
+  );
+
+  componentTest(
+    "user avatar is highlighted when the user receives notifications beyond the first one",
+    {
+      template: hbs`{{site-header}}`,
+
+      beforeEach() {
+        this.siteSettings.enable_revamped_user_menu = true;
+        this.currentUser.set("all_unread_notifications", 1);
+        this.currentUser.set("read_first_notification", true);
+        this.currentUser.set("enforcedSecondFactor", false);
+      },
+
+      test(assert) {
+        assert.ok(!exists(".ring-first-notification"));
+      },
+    }
+  );
+
+  componentTest("hamburger menu icon shows pending reviewables count", {
+    template: hbs`{{site-header}}`,
+
+    beforeEach() {
+      this.currentUser.set("reviewable_count", 1);
+    },
+
+    test(assert) {
+      let pendingReviewablesBadge = query(
+        ".hamburger-dropdown .badge-notification"
+      );
+      assert.strictEqual(pendingReviewablesBadge.textContent, "1");
+    },
+  });
+
+  componentTest(
+    "hamburger menu icon doesn't show pending reviewables count when revamped user menu is enabled",
+    {
+      template: hbs`{{site-header}}`,
+
+      beforeEach() {
+        this.siteSettings.enable_revamped_user_menu = true;
+        this.currentUser.set("reviewable_count", 1);
+      },
+
+      test(assert) {
+        assert.ok(!exists(".hamburger-dropdown .badge-notification"));
+      },
+    }
+  );
+
+  componentTest("clicking outside the revamped user menu closes the menu", {
+    template: hbs`{{site-header}}`,
+
+    beforeEach() {
+      this.siteSettings.enable_revamped_user_menu = true;
+    },
+
+    async test(assert) {
+      await click(".header-dropdown-toggle.current-user");
+      assert.ok(exists(".user-menu.menu-panel.revamped"));
+
+      await click(".d-header-wrap");
+      assert.ok(!exists(".user-menu.menu-panel.revamped"));
+    },
+  });
 });

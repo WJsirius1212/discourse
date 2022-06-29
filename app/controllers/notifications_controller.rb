@@ -43,7 +43,7 @@ class NotificationsController < ApplicationController
           notifications: serialize_data(notifications, NotificationSerializer)
         )
       else
-        notifications = Notification.recent_report(current_user, limit, high_pri_on_top: true)
+        notifications = Notification.recent_report(current_user, limit)
         changed = false
 
         if notifications.present? && !(params.has_key?(:silent) || @readonly_mode)
